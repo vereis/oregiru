@@ -23,8 +23,8 @@ defmodule Ore.Guilds do
   end
 
   @doc "Gets all guilds matching the given filters."
-  @spec get_guilds(filters :: Keyword.t()) :: [Guild.t()]
-  def get_guilds(filters \\ []) do
+  @spec list_guilds(filters :: Keyword.t()) :: [Guild.t()]
+  def list_guilds(filters \\ []) do
     filters |> Guild.query() |> Repo.all()
   end
 end
