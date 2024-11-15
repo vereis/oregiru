@@ -95,7 +95,7 @@ defmodule Ore.GuildsTest do
       assert {:ok, %Member{} = member} =
                Guilds.create_member(ctx.guild, %{given_name: "Alice", family_name: "Einhardt", level: 10})
 
-      assert is_nil member.gender
+      assert is_nil(member.gender)
     end
   end
 
