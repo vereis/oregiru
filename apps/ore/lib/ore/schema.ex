@@ -3,6 +3,8 @@ defmodule Ore.Schema do
 
   defmacro __using__(_) do
     quote do
+      @behaviour EctoHooks
+
       use Ecto.Schema
       use EctoModel.Queryable
 
