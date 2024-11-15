@@ -9,7 +9,7 @@ defmodule Ore.Umbrella.MixProject do
       deps: deps(),
       aliases: aliases(),
       elixirc_options: [warnings_as_errors: true],
-      dialyzer: [plt_file: {:no_warn, "priv/plts/dialyzer.plt"}],
+      dialyzer: [plt_add_apps: [:ecto_model], plt_file: {:no_warn, "priv/plts/dialyzer.plt"}],
       preferred_cli_env: [
         test: :test,
         "test.watch": :test,

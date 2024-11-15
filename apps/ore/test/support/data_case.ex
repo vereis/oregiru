@@ -24,6 +24,7 @@ defmodule Ore.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Ore.DataCase
+      import Ore.Factory
 
       alias Ore.Repo
     end
