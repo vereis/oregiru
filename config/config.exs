@@ -9,13 +9,23 @@
 # move said applications out of the umbrella.
 import Config
 
+# Configure esbuild (the version is required)
+config :esbuild,
+  version: "0.17.11",
+  ore_web: [
+    args: ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+    cd: Path.expand("../apps/ore_web/assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
+
+# Configures Elixir's Logger
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id]
+
 # Configure Mix tasks and generators
 config :ore,
   ecto_repos: [Ore.Repo]
-
-config :ore_web,
-  ecto_repos: [Ore.Repo],
-  generators: [context_app: :ore]
 
 # Configures the endpoint
 config :ore_web, OreWeb.Endpoint,
@@ -28,15 +38,12 @@ config :ore_web, OreWeb.Endpoint,
   pubsub_server: Ore.PubSub,
   live_view: [signing_salt: "xXmlV55H"]
 
-# Configure esbuild (the version is required)
-config :esbuild,
-  version: "0.17.11",
-  ore_web: [
-    args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
-    cd: Path.expand("../apps/ore_web/assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ]
+config :ore_web,
+  ecto_repos: [Ore.Repo],
+  generators: [context_app: :ore]
+
+# Use Jason for JSON parsing in Phoenix
+config :phoenix, :json_library, Jason
 
 # Configure tailwind (the version is required)
 config :tailwind,
@@ -47,17 +54,10 @@ config :tailwind,
       --input=css/app.css
       --output=../priv/static/assets/app.css
     ),
+
+    # Import environment specific config. This must remain at the bottom
+    # of this file so it overrides the configuration defined above.
     cd: Path.expand("../apps/ore_web/assets", __DIR__)
   ]
 
-# Configures Elixir's Logger
-config :logger, :console,
-  format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
-
-# Use Jason for JSON parsing in Phoenix
-config :phoenix, :json_library, Jason
-
-# Import environment specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

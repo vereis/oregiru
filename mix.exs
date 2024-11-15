@@ -7,7 +7,16 @@ defmodule Ore.Umbrella.MixProject do
       version: "0.1.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      elixirc_options: [warnings_as_errors: true],
+      dialyzer: [plt_file: {:no_warn, "priv/plts/dialyzer.plt"}],
+      preferred_cli_env: [
+        test: :test,
+        "test.watch": :test,
+        coveralls: :test,
+        "coveralls.html": :test
+      ],
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -27,7 +36,16 @@ defmodule Ore.Umbrella.MixProject do
     [
       # Required to run "mix format" on ~H/.heex files from the umbrella root
       # TODO bump on release to {:phoenix_live_view, ">= 0.0.0"},
-      {:phoenix_live_view, "~> 1.0.0-rc.1", override: true}
+      {:phoenix_live_view, "~> 1.0.0-rc.1", override: true},
+      # Lint dependencies
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:styler, "~> 1.1", only: [:dev, :test], runtime: false},
+      # Test dependencies
+      {:mix_test_watch, "~> 1.1", only: :test, runtime: false},
+      {:excoveralls, "~> 0.16", only: :test, runtime: false},
+      # Misc dependencies
+      {:ex_doc, "~> 0.14", only: :dev, runtime: false}
     ]
   end
 
@@ -42,8 +60,8 @@ defmodule Ore.Umbrella.MixProject do
   # and cannot be accessed from applications inside the apps/ folder.
   defp aliases do
     [
-      # run `mix setup` in all child apps
-      setup: ["cmd mix setup"]
+      setup: ["cmd mix setup"],
+      lint: ["format --check-formatted --dry-run", "credo --strict", "dialyzer"]
     ]
   end
 end
