@@ -81,7 +81,12 @@ defmodule Ore.GuildsTest do
   describe "create_member/2" do
     test "creates a new member for the given guild", ctx do
       assert {:ok, %Member{} = member} =
-               Guilds.create_member(ctx.guild, %{given_name: "Alice", family_name: "Einhardt", gender: :female, level: 10})
+               Guilds.create_member(ctx.guild, %{
+                 given_name: "Alice",
+                 family_name: "Einhardt",
+                 gender: :female,
+                 level: 10
+               })
 
       assert member.guild_id == ctx.guild.id
       assert member.given_name == "Alice"
@@ -93,7 +98,11 @@ defmodule Ore.GuildsTest do
 
     test "gender is undefined if not provided", ctx do
       assert {:ok, %Member{} = member} =
-               Guilds.create_member(ctx.guild, %{given_name: "Alice", family_name: "Einhardt", level: 10})
+               Guilds.create_member(ctx.guild, %{
+                 given_name: "Alice",
+                 family_name: "Einhardt",
+                 level: 10
+               })
 
       assert is_nil(member.gender)
     end
@@ -102,7 +111,11 @@ defmodule Ore.GuildsTest do
   describe "update_member/2" do
     test "updates a member with the given attrs", ctx do
       assert {:ok, %Member{} = member} =
-               Guilds.update_member(ctx.member, %{given_name: "Samantha", family_name: "Carter", level: 50})
+               Guilds.update_member(ctx.member, %{
+                 given_name: "Samantha",
+                 family_name: "Carter",
+                 level: 50
+               })
 
       assert member.id == ctx.member.id
       assert member.guild_id == ctx.member.guild_id
@@ -140,14 +153,22 @@ defmodule Ore.GuildsTest do
       member_3 = insert(:member, guild: guild, level: 101)
 
       members = [member_1, member_2, member_3]
-      result = Guilds.list_members(guild_id: guild.id, level: {:>=, 0}, level: {:<=, 100}, order_by: {:asc, :id})
+
+      result =
+        Guilds.list_members(
+          guild_id: guild.id,
+          level: {:>=, 0},
+          level: {:<=, 100},
+          order_by: {:asc, :id}
+        )
+
       assert length(result) == 2
 
       for {member, idx} <- Enum.with_index(result) do
         assert member.id == Enum.at(members, idx).id
       end
 
-      [result] = Guilds.list_members(guild_id: guild.id, level: {:>=, 100}, order_by: {:asc, :id})
+      [result] = Guilds.list_members(guild_id: guild.id, level: {:>, 100}, order_by: {:asc, :id})
       assert result.id == member_3.id
     end
   end
