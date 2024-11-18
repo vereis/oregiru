@@ -1,4 +1,5 @@
 defmodule Ore.Guilds.Leader do
+  @moduledoc false
   use Ore.Schema
 
   alias Ore.Guilds.Guild
@@ -14,14 +15,21 @@ defmodule Ore.Guilds.Leader do
   end
 
   def changeset(%Leader{} = leader, attrs) do
+    {password, attrs} = Map.pop(attrs, :password)
+
     attrs =
-      attrs
-      |> Map.drop([:password, :hashed_password])
-      |> Map.put(:hashed_password, &encrypt_and_hash_password/1)
+      if password do
+        attrs
+        |> Map.put(:password_hash, encrypt_and_hash_password(password))
+        |> Map.delete(:password)
+      else
+        Map.drop(attrs, [:password, :password_hash])
+      end
 
     leader
-    |> cast(attrs, [:email, :hashed_password])
-    |> validate_required([:email, :password])
+    |> cast(attrs, __schema__(:fields))
+    |> validate_required([:email, :password_hash])
+    |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
   end
 
@@ -38,6 +46,6 @@ defmodule Ore.Guilds.Leader do
 
   # TODO: Don't do it this way! This is just for demonstration purposes.
   defp encrypt_and_hash_password(password) do
-    Base.encode64(:erlang.term_to_binary(password), padding: false)
+    Base.encode64(:erlang.term_to_binary(password, [:deterministic]), padding: false)
   end
 end

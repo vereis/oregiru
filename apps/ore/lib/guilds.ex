@@ -2,8 +2,8 @@ defmodule Ore.Guilds do
   @moduledoc "Module for managing all things related to guilds."
 
   alias Ore.Guilds.Guild
-  alias Ore.Guilds.Member
   alias Ore.Guilds.Leader
+  alias Ore.Guilds.Member
   alias Ore.Repo
 
   @doc "Creates a new guild."
