@@ -6,14 +6,14 @@ defmodule Ore.Guilds.Member do
   alias Ore.Guilds.Guild
 
   schema "guild_members" do
-    field :given_name, :string
-    field :family_name, :string
-    field :level, :integer, default: 0
-    field :gender, Ecto.Enum, values: [:male, :female]
+    field(:given_name, :string)
+    field(:family_name, :string)
+    field(:level, :integer, default: 0)
+    field(:gender, Ecto.Enum, values: [:male, :female])
 
-    field :name, :string, virtual: true
+    field(:name, :string, virtual: true)
 
-    belongs_to :guild, Guild
+    belongs_to(:guild, Guild)
   end
 
   @impl EctoHooks
