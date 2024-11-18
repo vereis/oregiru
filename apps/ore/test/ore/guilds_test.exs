@@ -3,6 +3,7 @@ defmodule Ore.GuildsTest do
 
   alias Ore.Guilds
   alias Ore.Guilds.Guild
+  alias Ore.Guilds.Leader
   alias Ore.Guilds.Member
 
   setup do
@@ -225,6 +226,151 @@ defmodule Ore.GuildsTest do
 
       [result] = Guilds.list_members(guild_id: guild.id, level: {:>, 100}, order_by: {:asc, :id})
       assert result.id == member_3.id
+    end
+  end
+
+  describe "create_leader/2" do
+    setup ctx do
+      {:ok, member: insert(:member, guild: ctx.guild)}
+    end
+
+    test "creates a new leader for the given guild", ctx do
+      assert {:ok, %Leader{} = leader} =
+               Guilds.create_leader(ctx.guild, ctx.member, %{
+                 email: "hello@example.com",
+                 password: "hunter2"
+               })
+
+      assert leader.guild_id == ctx.guild.id
+      assert leader.member_id == ctx.member.id
+      assert leader.email == "hello@example.com"
+      refute leader.password_hash == "hunter2"
+    end
+
+    test "fails to create a leader if the email is not an email", ctx do
+      assert {:error, changeset} =
+               Guilds.create_leader(ctx.guild, ctx.member, %{
+                 email: "hello",
+                 password: "hunter2"
+               })
+
+      assert [email: {"has invalid format", [validation: :format]}] = changeset.errors
+    end
+
+    test "fails to create a leader if the email is not unique", ctx do
+      assert {:ok, _leader} =
+               Guilds.create_leader(ctx.guild, ctx.member, %{
+                 email: "hello@example.com",
+                 password: "hunter2"
+               })
+
+      assert {:error, changeset} =
+               Guilds.create_leader(ctx.guild, ctx.member, %{
+                 email: "hello@example.com",
+                 password: "hunter2"
+               })
+
+      assert [email: {"has already been taken", [{:constraint, :unique} | _metadata]}] =
+               changeset.errors
+    end
+  end
+
+  describe "update_leader/2" do
+    setup ctx do
+      {:ok, leader: insert(:leader, guild: ctx.guild)}
+    end
+
+    test "updates a leader with the given attrs", ctx do
+      assert {:ok, %Leader{} = leader} =
+               Guilds.update_leader(ctx.leader, %{email: "new_email@example.com"})
+
+      assert leader.id == ctx.leader.id
+      assert leader.guild_id == ctx.leader.guild_id
+      assert leader.member_id == ctx.leader.member_id
+      assert leader.email == "new_email@example.com"
+      assert leader.password_hash == ctx.leader.password_hash
+    end
+
+    test "sets new hashed password given new password in attrs", ctx do
+      assert {:ok, %Leader{} = leader} =
+               Guilds.update_leader(ctx.leader, %{password: "something_new"})
+
+      assert leader.id == ctx.leader.id
+      assert leader.guild_id == ctx.leader.guild_id
+      assert leader.member_id == ctx.leader.member_id
+      refute leader.password_hash == ctx.leader.password_hash
+    end
+  end
+
+  describe "get_leader/2" do
+    setup ctx do
+      {:ok, leader: insert(:leader, guild: ctx.guild)}
+    end
+
+    test "returns nil when a leader does not exist" do
+      assert is_nil(Guilds.get_leader(0))
+    end
+
+    test "returns leader given its id", ctx do
+      assert %Leader{} = leader = Guilds.get_leader(ctx.leader.id)
+      assert leader.id == ctx.leader.id
+    end
+
+    test "returns leader given its guild", ctx do
+      assert %Leader{} = leader = Guilds.get_leader(ctx.guild)
+      assert leader.id == ctx.leader.id
+    end
+
+    test "returns leader given its id and filters", ctx do
+      assert is_nil(Guilds.get_leader(ctx.leader.id, email: "random-email@example.com"))
+      assert %Leader{} = leader = Guilds.get_leader(ctx.leader.id, email: ctx.leader.email)
+      assert leader.id == ctx.leader.id
+    end
+
+    test "returns leader given its guild and filters", ctx do
+      assert is_nil(Guilds.get_leader(ctx.guild, email: "random-email@example.com"))
+      assert %Leader{} = leader = Guilds.get_leader(ctx.guild, email: ctx.leader.email)
+      assert leader.id == ctx.leader.id
+    end
+
+    test "returns leader when searching by password", ctx do
+      password = Ecto.UUID.generate()
+
+      {:ok, leader} =
+        Guilds.create_leader(ctx.guild, insert(:member, guild: ctx.guild), %{
+          email: "jblow@example.com",
+          password: password
+        })
+
+      # Obviously, we don't expect anything to be returned if the password is incorrect
+      assert is_nil(Guilds.get_leader(leader.id, password: "random-password"))
+
+      # You also can't just search by the hashed password itself
+      assert is_nil(Guilds.get_leader(leader.id, password: leader.password_hash))
+
+      assert %Leader{} = result = Guilds.get_leader(leader.id, password: password)
+      assert result.id == leader.id
+      assert result.password_hash == leader.password_hash
+    end
+  end
+
+  describe "list_leaders/1" do
+    test "returns nothing if no leaders exist" do
+      assert [] = Guilds.list_leaders()
+    end
+
+    test "returns nothing if no leaders match the given filters" do
+      assert [] = Guilds.list_leaders(email: "donquihote@example.com")
+    end
+
+    test "returns leaders for the given guild" do
+      leader_1 = insert(:leader)
+      leader_2 = insert(:leader)
+
+      assert [_result_1, _result_2] = Guilds.list_leaders()
+      assert [result_1] = Guilds.list_leaders(guild_id: leader_1.guild_id)
+      assert [result_2] = Guilds.list_leaders(guild_id: leader_2.guild_id)
+      refute result_1 == result_2
     end
   end
 end
