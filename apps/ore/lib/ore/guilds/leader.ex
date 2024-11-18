@@ -44,7 +44,6 @@ defmodule Ore.Guilds.Leader do
     end)
   end
 
-  # TODO: Don't do it this way! This is just for demonstration purposes.
   defp encrypt_and_hash_password(password) do
     Base.encode64(:erlang.term_to_binary(password, [:deterministic]), padding: false)
   end
