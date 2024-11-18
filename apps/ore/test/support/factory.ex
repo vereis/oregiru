@@ -5,6 +5,9 @@ defmodule Ore.Factory do
   alias Ore.Guilds.Guild
   alias Ore.Guilds.Leader
   alias Ore.Guilds.Member
+  alias Ore.Quests.Quest
+
+  # Guilds ====================================================================
 
   def guild_factory do
     %Guild{
@@ -33,6 +36,18 @@ defmodule Ore.Factory do
       member: member,
       email: Ecto.UUID.generate() <> "@example.com",
       password_hash: "password"
+    }
+  end
+
+  # Quests ====================================================================
+
+  def quest_factory do
+    %Quest{
+      guild: build(:guild),
+      name: Enum.random(["Defeat the Dragon", "Find the Lost Treasure", "Rescue the Princess"]),
+      state: :proposed,
+      min_level: Enum.random(1..50),
+      max_level: Enum.random(51..100)
     }
   end
 end
