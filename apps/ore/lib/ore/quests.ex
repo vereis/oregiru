@@ -3,8 +3,8 @@ defmodule Ore.Quests do
 
   alias Ore.Guilds.Guild
   alias Ore.Guilds.Member
-  alias Ore.Repo
   alias Ore.Quests.Quest
+  alias Ore.Repo
 
   @doc "Creates a new quest."
   @spec create_quest(Guild.t(), map()) :: {:ok, Quest.t()} | {:error, Ecto.Changeset.t()}
@@ -46,6 +46,10 @@ defmodule Ore.Quests do
   @doc "Enrolls the member or members in the given quest."
   @spec enroll_quest(Quest.t(), Member.t()) :: {:ok, Quest.t()} | {:error, term()}
   @spec enroll_quest(Quest.t(), [Member.t()]) :: {:ok, Quest.t()} | {:error, term()}
+  def enroll_quest(%Quest{} = quest, _members) when quest.state in [:proposed, :active, :completed, :failed] do
+    {:error, {:invalid_state, quest.state}}
+  end
+
   def enroll_quest(%Quest{} = quest, %Member{} = member) do
     enroll_quest(quest, [member])
   end
@@ -59,10 +63,9 @@ defmodule Ore.Quests do
     ineligible_members = Enum.reject(members, &(&1.level in level_range))
 
     if ineligible_members == [] do
-      update_quest(quest, %{member_ids: Enum.map(members, & &1.id)})
+      update_quest(quest, %{member_ids: Enum.map(members, & &1.id), state: :active})
     else
-      {:error,
-       {:level_range_mismatch, ineligible_members: ineligible_members, range: level_range}}
+      {:error, {:level_range_mismatch, ineligible_members: ineligible_members, range: level_range}}
     end
   end
 
@@ -70,6 +73,6 @@ defmodule Ore.Quests do
   @spec transition_quest(Quest.t(), state :: atom()) ::
           {:ok, Quest.t()} | {:error, Ecto.Changeset.t()}
   def transition_quest(%Quest{} = quest, state) do
-    update_quest(quest, %{status: state})
+    update_quest(quest, %{state: state})
   end
 end

@@ -1,4 +1,5 @@
 defmodule Ore.Quests.Quest do
+  @moduledoc false
   use Ore.Schema
 
   alias Ore.Guilds.Guild
@@ -15,7 +16,7 @@ defmodule Ore.Quests.Quest do
 
   schema "quests" do
     field(:name, :string)
-    field(:status, Ecto.Enum, values: Map.keys(@state_transitions), default: @default_state)
+    field(:state, Ecto.Enum, values: Map.keys(@state_transitions), default: @default_state)
 
     field(:min_level, :integer, default: 0)
     field(:max_level, :integer, default: 999)
@@ -26,10 +27,15 @@ defmodule Ore.Quests.Quest do
 
   def changeset(%Quest{} = quest, attrs) do
     quest
-    |> cast(attrs, [:guild_id, :name, :status, :min_level, :max_level])
-    |> validate_required([:guild_id, :name, :status])
+    |> cast(attrs, [:guild_id, :name, :state, :min_level, :max_level])
+    |> validate_required([:guild_id, :name, :state])
     |> validate_state_transition()
     |> preload_put_assoc(attrs, :members, :member_ids, guild_id: quest.guild_id)
+  end
+
+  @doc false
+  def state_transitions do
+    @state_transitions
   end
 
   defp validate_state_transition(changeset) do

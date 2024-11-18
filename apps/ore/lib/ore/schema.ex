@@ -60,18 +60,12 @@ defmodule Ore.Schema do
     end
   end
 
-  defp handle_preload_put_assoc_items(
-         repo,
-         %Ecto.Changeset{data: %schema{}},
-         field,
-         items,
-         filters
-       ) do
+  defp handle_preload_put_assoc_items(repo, %Ecto.Changeset{data: %schema{}}, field, items, filters) do
     import Ecto.Query
 
     queryable =
-      field
-      |> schema.association()
+      :association
+      |> schema.__schema__(field)
       |> Map.get(:queryable)
 
     cond do
