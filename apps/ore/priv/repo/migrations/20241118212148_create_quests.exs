@@ -5,7 +5,7 @@ defmodule Ore.Repo.Migrations.CreateQuests do
     create table(:quests) do
       add(:guild_id, references(:guilds, on_delete: :delete_all), null: false)
       add(:name, :string, null: false)
-      add(:status, :string, null: false)
+      add(:state, :string, null: false)
       add(:min_level, :integer, default: 0)
       add(:max_level, :integer, default: 999)
     end
@@ -15,6 +15,6 @@ defmodule Ore.Repo.Migrations.CreateQuests do
       add(:member_id, references(:guild_members, on_delete: :delete_all), null: false)
     end
 
-    create(index(:quests, [:guild_id, :status]))
+    create(index(:quests, [:guild_id, :state]))
   end
 end
