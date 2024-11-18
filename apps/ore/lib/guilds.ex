@@ -3,6 +3,7 @@ defmodule Ore.Guilds do
 
   alias Ore.Guilds.Guild
   alias Ore.Guilds.Member
+  alias Ore.Guilds.Leader
   alias Ore.Repo
 
   @doc "Creates a new guild."
@@ -63,5 +64,38 @@ defmodule Ore.Guilds do
   @spec list_members(Guild.t(), filters :: Keyword.t()) :: [Member.t()]
   def list_members(%Guild{} = guild, filters) do
     filters |> Keyword.put(:guild_id, guild.id) |> list_members()
+  end
+
+  @doc "Creates a new guild leader."
+  @spec create_leader(guild :: Guild.t(), member :: Member.t(), attrs :: map()) ::
+          {:ok, Leader.t()} | {:error, Ecto.Changeset.t()}
+  def create_leader(%Guild{} = guild, %Member{} = member, attrs) do
+    %Leader{guild_id: guild.id, member_id: member.id} |> Leader.changeset(attrs) |> Repo.insert()
+  end
+
+  @doc "Updates a guild leader with the given attrs."
+  @spec update_leader(leader :: Leader.t(), attrs :: map()) ::
+          {:ok, Leader.t()} | {:error, Ecto.Changeset.t()}
+  def update_leader(%Leader{} = leader, attrs) do
+    leader |> Leader.changeset(attrs) |> Repo.update()
+  end
+
+  @doc "Gets a guild leader by their id w/ optional filters."
+  @spec get_leader(id :: integer(), filters :: Keyword.t()) :: Leader.t() | nil
+  @spec get_leader(Guild.t(), filters :: Keyword.t()) :: Leader.t() | nil
+  def get_leader(id_or_guild, filters \\ [])
+
+  def get_leader(%Guild{} = guild, filters) do
+    filters |> Keyword.put(:guild_id, guild.id) |> Leader.query() |> Repo.one()
+  end
+
+  def get_leader(id, filters) do
+    filters |> Keyword.put(:id, id) |> Leader.query() |> Repo.one()
+  end
+
+  @doc "Gets all guild leaders matching the given filters."
+  @spec list_leaders(filters :: Keyword.t()) :: [Leader.t()]
+  def list_leaders(filters \\ []) do
+    filters |> Leader.query() |> Repo.all()
   end
 end
