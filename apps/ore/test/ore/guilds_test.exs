@@ -60,6 +60,15 @@ defmodule Ore.GuildsTest do
   end
 
   describe "list_guilds/1" do
+    test "returns all guilds", ctx do
+      assert [result] = Guilds.list_guilds()
+      assert result.id == ctx.guild.id
+    end
+
+    test "returns no guilds if filters don't match", _ctx do
+      assert [] = Guilds.list_guilds(level: {:>, 300})
+    end
+
     test "returns guilds matching the given filters", ctx do
       guild_1 = ctx.guild
       guild_2 = insert(:guild, level: 50)
@@ -145,7 +154,53 @@ defmodule Ore.GuildsTest do
     end
   end
 
-  describe "list_members/1" do
+  describe "list_members/2" do
+    test "returns nothing if no members exist" do
+      guild = insert(:guild)
+      assert [] = Guilds.list_members(guild)
+    end
+
+    test "returns nothing if no members match the given filters" do
+      assert [] = Guilds.list_members(level: 999)
+    end
+
+    test "returns members for the given guild", ctx do
+      guild_1 = ctx.guild
+      guild_2 = insert(:guild, name: "The Other Guild")
+      member_1 = ctx.member
+      member_2 = insert(:member, guild: guild_2)
+
+      assert [result] = Guilds.list_members(guild_1)
+      assert result.id == member_1.id
+
+      assert [result] = Guilds.list_members(guild_2)
+      assert result.id == member_2.id
+    end
+
+    test "returns members for the given guild and filters", ctx do
+      guild = ctx.guild
+      member_1 = ctx.member
+      member_2 = insert(:member, guild: guild, level: 50)
+      member_3 = insert(:member, guild: guild, level: 101)
+
+      guild_2 = insert(:guild)
+      member_4 = insert(:member, guild: guild_2, level: 50)
+
+      result =
+        Guilds.list_members(guild, level: {:>=, 0}, level: {:<=, 100}, order_by: {:asc, :id})
+
+      assert length(result) == 2
+      assert Enum.at(result, 0).id == member_1.id
+      assert Enum.at(result, 1).id == member_2.id
+
+      [result] = Guilds.list_members(guild, level: {:>, 100}, order_by: {:asc, :id})
+      assert result.id == member_3.id
+
+      assert [] = Guilds.list_members(guild_2, level: {:>, 100})
+      assert [result] = Guilds.list_members(guild_2, level: {:>=, 0}, level: {:<=, 100})
+      assert result.id == member_4.id
+    end
+
     test "returns members matching the given filters", ctx do
       guild = ctx.guild
       member_1 = ctx.member

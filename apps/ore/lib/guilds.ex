@@ -13,7 +13,7 @@ defmodule Ore.Guilds do
 
   @doc "Updates a guild with the given attrs."
   @spec update_guild(Guild.t(), attrs :: map()) :: {:ok, Guild.t()} | {:error, Ecto.Changeset.t()}
-  def update_guild(guild, attrs) do
+  def update_guild(%Guild{} = guild, attrs) do
     guild |> Guild.changeset(attrs) |> Repo.update()
   end
 
@@ -30,14 +30,16 @@ defmodule Ore.Guilds do
   end
 
   @doc "Creates a new guild member."
-  @spec create_member(guild :: Guild.t(), attrs :: map()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
-  def create_member(guild, attrs) do
+  @spec create_member(guild :: Guild.t(), attrs :: map()) ::
+          {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
+  def create_member(%Guild{} = guild, attrs) do
     %Member{guild_id: guild.id} |> Member.changeset(attrs) |> Repo.insert()
   end
 
   @doc "Updates a guild member with the given attrs."
-  @spec update_member(member :: Member.t(), attrs :: map()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
-  def update_member(member, attrs) do
+  @spec update_member(member :: Member.t(), attrs :: map()) ::
+          {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
+  def update_member(%Member{} = member, attrs) do
     member |> Member.changeset(attrs) |> Repo.update()
   end
 
@@ -49,7 +51,17 @@ defmodule Ore.Guilds do
 
   @doc "Gets all guild members matching the given filters."
   @spec list_members(filters :: Keyword.t()) :: [Member.t()]
-  def list_members(filters \\ []) do
+  def list_members(%Guild{} = guild) do
+    list_members(guild_id: guild.id)
+  end
+
+  def list_members(filters) do
     filters |> Member.query() |> Repo.all()
+  end
+
+  @doc "Gets all guild members for the given guild plus matching the given filters."
+  @spec list_members(Guild.t(), filters :: Keyword.t()) :: [Member.t()]
+  def list_members(%Guild{} = guild, filters) do
+    filters |> Keyword.put(:guild_id, guild.id) |> list_members()
   end
 end
